@@ -176,14 +176,15 @@ imports: [
     {
         luma: [
             dark
+            light
             unknown
         ]
-        file: dark-blue-skin.hjson
+        file: terminal-colors.hjson
     }
 
     # This skin is imported when your terminal is light
-    {
-        luma: light
-        file: white-skin.hjson
-    }
+    # {
+    #     luma: light
+    #     file: white-skin.hjson
+    # }
 ]
