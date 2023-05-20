@@ -14,6 +14,7 @@ use {
         cursor,
         QueueableCommand,
     },
+    lscolors::LsColors,
     std::{
         io,
         path::PathBuf,
@@ -73,6 +74,7 @@ impl DirView {
             ext_colors: &disc.con.ext_colors,
             area: area.clone(),
             in_app: true,
+            ls_colors: LsColors::from_env().unwrap_or_default(),
         };
         dp.write_on(w)?;
         Ok(())

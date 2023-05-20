@@ -25,7 +25,11 @@ use {
     },
     file_size,
     git2::Status,
-    std::io::Write,
+    lscolors::LsColors,
+    std::{
+        borrow::Cow,
+        io::Write,
+    },
     termimad::{CompoundStyle, ProgressBar},
 };
 
@@ -43,6 +47,7 @@ pub struct DisplayableTree<'a, 's, 't> {
     pub area: termimad::Area,
     pub in_app: bool, // if true we show the selection and scrollbar
     pub ext_colors: &'s ExtColorMap,
+    pub ls_colors: LsColors,
 }
 
 impl<'a, 's, 't> DisplayableTree<'a, 's, 't> {
@@ -66,36 +71,27 @@ impl<'a, 's, 't> DisplayableTree<'a, 's, 't> {
                 height,
             },
             in_app: false,
+            ls_colors: LsColors::from_env().unwrap_or_default(),
         }
     }
 
-    fn label_style(
-        &self,
-        line: &TreeLine,
-        selected: bool,
-    ) -> CompoundStyle {
-        let style = match &line.line_type {
-            TreeLineType::Dir => &self.skin.directory,
-            TreeLineType::File => {
-                if line.is_exe() {
-                    &self.skin.exe
-                } else {
-                    &self.skin.file
-                }
-            }
-            TreeLineType::BrokenSymLink(_) | TreeLineType::SymLink { .. } => &self.skin.link,
-            TreeLineType::Pruning => &self.skin.pruning,
-        };
-        let mut style = style.clone();
-        if let Some(ext_color) = line.extension().and_then(|ext| self.ext_colors.get(ext)) {
-            style.set_fg(ext_color);
+    fn label_style(&self, line: &TreeLine, selected: bool) -> Cow<CompoundStyle> {
+        if line.line_type == TreeLineType::Pruning {
+            return Cow::Borrowed(&self.skin.pruning);
         }
+
+        let mut style = self.skin.file.clone();
+
+        if let Some(s) = self.ls_colors.style_for_path(&line.path) {
+            style = CompoundStyle::from(s.to_crossterm_style());
+        }
+
         if selected {
             if let Some(c) = self.skin.selected_line.get_bg() {
                 style.set_bg(c);
             }
         }
-        style
+        Cow::Owned(style)
     }
 
     fn write_line_count<W: Write>(

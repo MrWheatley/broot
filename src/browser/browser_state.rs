@@ -15,6 +15,7 @@ use {
         tree_build::TreeBuilder,
         verb::*,
     },
+    lscolors::LsColors,
     opener,
     std::path::{Path, PathBuf},
 };
@@ -712,6 +713,7 @@ impl PanelState for BrowserState {
             ext_colors: &disc.con.ext_colors,
             area: disc.state_area.clone(),
             in_app: true,
+            ls_colors: LsColors::from_env().unwrap_or_default(),
         };
         dp.write_on(w)
     }
